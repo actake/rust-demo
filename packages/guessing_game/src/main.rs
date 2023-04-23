@@ -2,13 +2,6 @@ use std::{cmp::Ordering, io};
 
 use rand::{thread_rng, Rng};
 
-/**
- * 猜数游戏：
- * 1. 生成随机数
- * 2. 读取命令行输入的数值
- * 3. 匹配二者的值，给出提示
- */
-
 fn gen_random_number() -> u32 {
     let mut rng = thread_rng();
     let random_number = rng.gen_range(1..=100);
@@ -16,6 +9,12 @@ fn gen_random_number() -> u32 {
     random_number
 }
 
+/**
+ * 猜数游戏：
+ * 1. 生成随机数
+ * 2. 读取命令行输入的数值
+ * 3. 匹配二者的值，给出提示
+ */
 fn main() {
     println!("猜数游戏开始!");
 
