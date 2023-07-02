@@ -5,4 +5,5 @@ members = [
     "packages/guessing_game",
     "packages/minigrep",
     "packages/simple_web_server",
+    "packages/leetcode",
 ]
