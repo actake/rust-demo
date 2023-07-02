@@ -77,13 +77,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_codewar"
-version = "0.1.0"
-dependencies = [
- "rand",
-]
-
-[[package]]
 name = "simple_web_server"
 version = "0.1.0"
 
