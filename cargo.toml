@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "packages/hello_rust",
+    "packages/demo",
     "packages/guessing_game",
     "packages/minigrep",
     "packages/simple_web_server",
