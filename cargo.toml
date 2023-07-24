@@ -6,4 +6,5 @@ members = [
     "packages/minigrep",
     "packages/simple_web_server",
     "packages/leetcode",
+    "packages/calculator"
 ]
