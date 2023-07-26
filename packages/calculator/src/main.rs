@@ -18,7 +18,7 @@ fn main() {
             }
         }
 
-        let mut interpreter = Interpreter::new(text.trim().to_string());
+        let interpreter = Interpreter::new(text.trim().to_string());
         interpreter
             .expr()
             .map(|result| {

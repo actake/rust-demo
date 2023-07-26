@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::cell::RefCell;
 
 use crate::{
     error::Error,
@@ -8,26 +8,27 @@ use crate::{
 pub struct Interpreter {
     text: String,
 
-    pos: usize,
+    pos: RefCell<usize>,
 
-    current_token: Rc<Option<Token>>,
+    current_token: RefCell<Option<Token>>,
 }
 
 impl Interpreter {
     pub fn new(text: String) -> Self {
         Interpreter {
             text,
-            pos: 0,
-            current_token: Rc::new(None),
+            pos: RefCell::new(0),
+            current_token: RefCell::new(None),
         }
     }
 
-    pub fn set_current_token(&mut self, new_token: Token) {
-        self.current_token = Rc::new(Some(new_token));
+    pub fn set_current_token(&self, new_token: Token) {
+        self.current_token.borrow_mut().replace(new_token);
     }
 
-    pub fn get_next_token(&mut self) -> Result<Token, Error> {
-        if self.pos > self.text.len() - 1 {
+    pub fn get_next_token(&self) -> Result<Token, Error> {
+        let mut pos_value = self.pos.borrow_mut();
+        if *pos_value > self.text.len() - 1 {
             return Ok(Token {
                 token_type: TokenType::EOF,
                 value: None,
@@ -37,12 +38,12 @@ impl Interpreter {
         let char: char = self
             .text
             .chars()
-            .nth(self.pos)
-            .unwrap_or_else(|| panic!("Get self.text[{}] failed", self.pos));
+            .nth(*pos_value)
+            .unwrap_or_else(|| panic!("Get self.text[{}] failed", *pos_value));
 
         match char {
             '+' => {
-                self.pos += 1;
+                *pos_value += 1;
                 Ok(Token {
                     token_type: TokenType::Plus,
                     value: Some(char.to_string()),
@@ -50,20 +51,20 @@ impl Interpreter {
             }
             _ => match char.to_digit(10) {
                 Some(v) => {
-                    self.pos += 1;
+                    *pos_value += 1;
                     Ok(Token {
                         token_type: TokenType::Integer,
                         value: Some(v.to_string()),
                     })
                 }
-                None => Err(Error::ParseError),
+                None => Err(Error::ParseToDigitError),
             },
         }
     }
 
-    fn eat(&mut self, token_type: TokenType) -> Result<(), Error> {
-        match *self.current_token.to_owned() {
-            None => Err(Error::NullError)?,
+    fn eat(&self, token_type: TokenType) -> Result<(), Error> {
+        match self.current_token.take() {
+            None => Err(Error::NullTokenError)?,
             Some(Token {
                 token_type: destruct_token_type,
                 ..
@@ -72,7 +73,7 @@ impl Interpreter {
                     let new_token = self.get_next_token()?;
                     self.set_current_token(new_token);
                 } else {
-                    // Err(Error::ParseError)?;
+                    Err(Error::TokenTypeMatchError)?;
                 }
             }
         };
@@ -80,25 +81,25 @@ impl Interpreter {
         Ok(())
     }
 
-    pub fn expr(&mut self) -> Result<u32, Error> {
+    pub fn expr(&self) -> Result<u32, Error> {
         let next_token = self.get_next_token()?;
         self.set_current_token(next_token);
 
-        let Token { value: left, .. } = self.current_token.as_ref().clone().unwrap();
+        let Token { value: left, .. } = self.current_token.borrow().clone().unwrap();
         self.eat(TokenType::Integer)?;
 
-        let _op = self.current_token.as_ref().clone().unwrap();
+        let _op = self.current_token.borrow().clone().unwrap();
         self.eat(TokenType::Plus)?;
 
-        let Token { value: right, .. } = self.current_token.as_ref().clone().unwrap();
+        let Token { value: right, .. } = self.current_token.borrow().clone().unwrap();
         self.eat(TokenType::Integer)?;
 
         match left {
             Some(left) => match right {
                 Some(right) => Ok(left.parse::<u32>().unwrap() + right.parse::<u32>().unwrap()),
-                _ => Err(Error::ParseError),
+                _ => Err(Error::DestructError),
             },
-            _ => Err(Error::ParseError),
+            _ => Err(Error::DestructError),
         }
     }
 }
