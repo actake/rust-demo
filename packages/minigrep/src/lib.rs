@@ -51,7 +51,6 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     contents
         .lines()
-        .into_iter()
         .filter(|line| line.contains(query))
         .collect()
 }
@@ -59,7 +58,6 @@ pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
 pub fn search_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     contents
         .lines()
-        .into_iter()
         .filter(|line| line.to_lowercase().contains(&query.to_lowercase()))
         .collect()
 }

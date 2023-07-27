@@ -4,9 +4,8 @@ use rand::{thread_rng, Rng};
 
 fn gen_random_number() -> u32 {
     let mut rng = thread_rng();
-    let random_number = rng.gen_range(1..=100);
 
-    random_number
+    rng.gen_range(1..=100)
 }
 
 /**

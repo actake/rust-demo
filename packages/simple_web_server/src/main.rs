@@ -14,7 +14,7 @@ fn main() {
 
     let thread_pool = ThreadPool::new(5);
 
-    listener.incoming().take(2).into_iter().for_each(|stream| {
+    listener.incoming().take(2).for_each(|stream| {
         thread_pool.execute(|| handle_connection(stream.unwrap()));
     });
 }
