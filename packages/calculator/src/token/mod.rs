@@ -5,6 +5,7 @@ pub enum TokenType {
     EOF,
     Integer,
     Plus,
+    Minus,
 }
 
 impl From<TokenType> for String {
@@ -13,6 +14,7 @@ impl From<TokenType> for String {
             TokenType::EOF => String::from("EOF"),
             TokenType::Integer => String::from("Integer"),
             TokenType::Plus => String::from("Plus"),
+            TokenType::Minus => String::from("Minus"),
         }
     }
 }
@@ -23,6 +25,7 @@ impl Display for TokenType {
             TokenType::EOF => write!(f, "TokenType::EOF"),
             TokenType::Plus => write!(f, "TokenType::Plus"),
             TokenType::Integer => write!(f, "TokenType::Integer"),
+            TokenType::Minus => write!(f, "TokenType::Minus"),
         }
     }
 }

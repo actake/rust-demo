@@ -11,14 +11,17 @@ pub struct Interpreter {
     pos: RefCell<usize>,
 
     current_token: RefCell<Option<Token>>,
+
+    current_char: RefCell<Option<char>>,
 }
 
 impl Interpreter {
     pub fn new(text: String) -> Self {
         Interpreter {
-            text,
+            text: text.clone(),
             pos: RefCell::new(0),
             current_token: RefCell::new(None),
+            current_char: RefCell::new(text.chars().next()),
         }
     }
 
@@ -26,40 +29,80 @@ impl Interpreter {
         self.current_token.borrow_mut().replace(new_token);
     }
 
-    pub fn get_next_token(&self) -> Result<Token, Error> {
+    pub fn advance(&self) {
         let mut pos_value = self.pos.borrow_mut();
+
+        *pos_value += 1;
+
         if *pos_value > self.text.len() - 1 {
-            return Ok(Token {
-                token_type: TokenType::EOF,
-                value: None,
-            });
+            *self.current_char.borrow_mut() = None;
+        } else {
+            self.current_char
+                .borrow_mut()
+                .replace(self.text.chars().nth(*pos_value).unwrap());
         }
+    }
 
-        let char: char = self
-            .text
-            .chars()
-            .nth(*pos_value)
-            .unwrap_or_else(|| panic!("Get self.text[{}] failed", *pos_value));
-
-        match char {
-            '+' => {
-                *pos_value += 1;
-                Ok(Token {
-                    token_type: TokenType::Plus,
-                    value: Some(char.to_string()),
-                })
+    pub fn skip_whitespace(&self) {
+        while let Some(char) = *self.current_char.clone().borrow() {
+            if !char.is_whitespace() {
+                break;
             }
-            _ => match char.to_digit(10) {
-                Some(v) => {
-                    *pos_value += 1;
-                    Ok(Token {
-                        token_type: TokenType::Integer,
-                        value: Some(v.to_string()),
-                    })
-                }
-                None => Err(Error::ParseToDigitError),
-            },
+            self.advance()
         }
+    }
+
+    pub fn integer(&self) -> Option<String> {
+        let mut result = String::new();
+        while let Some(char) = *self.current_char.clone().borrow() {
+            if !char.is_ascii_digit() {
+                break;
+            }
+
+            result += char.to_string().as_str();
+            self.advance();
+        }
+
+        Some(result)
+    }
+
+    pub fn get_next_token(&self) -> Result<Token, Error> {
+        while let Some(char) = *self.current_char.clone().borrow() {
+            if char.is_whitespace() {
+                self.skip_whitespace();
+                continue;
+            }
+
+            if char.is_ascii_digit() {
+                return Ok(Token {
+                    token_type: TokenType::Integer,
+                    value: self.integer(),
+                });
+            }
+
+            if char == '+' {
+                self.advance();
+
+                return Ok(Token {
+                    token_type: TokenType::Plus,
+                    value: Some('+'.to_string()),
+                });
+            }
+
+            if char == '-' {
+                self.advance();
+
+                return Ok(Token {
+                    token_type: TokenType::Minus,
+                    value: Some('-'.to_string()),
+                });
+            }
+        }
+
+        Ok(Token {
+            token_type: TokenType::EOF,
+            value: None,
+        })
     }
 
     fn eat(&self, token_type: TokenType) -> Result<(), Error> {
@@ -88,18 +131,25 @@ impl Interpreter {
         let Token { value: left, .. } = self.current_token.borrow().clone().unwrap();
         self.eat(TokenType::Integer)?;
 
-        let _op = self.current_token.borrow().clone().unwrap();
-        self.eat(TokenType::Plus)?;
+        let op = self.current_token.borrow().clone().unwrap();
+        self.eat(op.token_type)?;
 
         let Token { value: right, .. } = self.current_token.borrow().clone().unwrap();
         self.eat(TokenType::Integer)?;
 
-        match left {
-            Some(left) => match right {
-                Some(right) => Ok(left.parse::<u32>().unwrap() + right.parse::<u32>().unwrap()),
-                _ => Err(Error::DestructError),
-            },
-            _ => Err(Error::DestructError),
-        }
+        left.and_then(|left| {
+            right.map(|right| {
+                let left_num = left.parse::<u32>().unwrap();
+                let right_num = right.parse::<u32>().unwrap();
+
+                (left_num, right_num)
+            })
+        })
+        .map(|(left, right)| match op.token_type {
+            TokenType::Plus => Ok(left + right),
+            TokenType::Minus => Ok(left - right),
+            _ => Err(Error::TokenTypeMatchError)?,
+        })
+        .ok_or(Error::DestructError)?
     }
 }
