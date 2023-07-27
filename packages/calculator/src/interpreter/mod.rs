@@ -97,6 +97,24 @@ impl Interpreter {
                     value: Some('-'.to_string()),
                 });
             }
+
+            if char == '*' {
+                self.advance();
+
+                return Ok(Token {
+                    token_type: TokenType::Multiply,
+                    value: Some('*'.to_string()),
+                });
+            }
+
+            if char == '/' {
+                self.advance();
+
+                return Ok(Token {
+                    token_type: TokenType::Division,
+                    value: Some('/'.to_string()),
+                });
+            }
         }
 
         Ok(Token {
@@ -107,7 +125,7 @@ impl Interpreter {
 
     fn eat(&self, token_type: TokenType) -> Result<(), Error> {
         match self.current_token.take() {
-            None => Err(Error::NullTokenError)?,
+            None => Err(Error::EmptyToken)?,
             Some(Token {
                 token_type: destruct_token_type,
                 ..
@@ -116,7 +134,7 @@ impl Interpreter {
                     let new_token = self.get_next_token()?;
                     self.set_current_token(new_token);
                 } else {
-                    Err(Error::TokenTypeMatchError)?;
+                    Err(Error::NotMatchToken)?;
                 }
             }
         };
@@ -148,8 +166,10 @@ impl Interpreter {
         .map(|(left, right)| match op.token_type {
             TokenType::Plus => Ok(left + right),
             TokenType::Minus => Ok(left - right),
-            _ => Err(Error::TokenTypeMatchError)?,
+            TokenType::Multiply => Ok(left * right),
+            TokenType::Division => Ok(left / right),
+            _ => Err(Error::NotSupportOP)?,
         })
-        .ok_or(Error::DestructError)?
+        .ok_or(Error::NotDigit)?
     }
 }

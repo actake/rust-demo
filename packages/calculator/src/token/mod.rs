@@ -6,6 +6,8 @@ pub enum TokenType {
     Integer,
     Plus,
     Minus,
+    Multiply,
+    Division,
 }
 
 impl From<TokenType> for String {
@@ -15,6 +17,8 @@ impl From<TokenType> for String {
             TokenType::Integer => String::from("Integer"),
             TokenType::Plus => String::from("Plus"),
             TokenType::Minus => String::from("Minus"),
+            TokenType::Multiply => String::from("Multiply"),
+            TokenType::Division => String::from("Division"),
         }
     }
 }
@@ -26,6 +30,8 @@ impl Display for TokenType {
             TokenType::Plus => write!(f, "TokenType::Plus"),
             TokenType::Integer => write!(f, "TokenType::Integer"),
             TokenType::Minus => write!(f, "TokenType::Minus"),
+            TokenType::Multiply => write!(f, "TokenType::Multiply"),
+            TokenType::Division => write!(f, "TokenType::Division"),
         }
     }
 }
